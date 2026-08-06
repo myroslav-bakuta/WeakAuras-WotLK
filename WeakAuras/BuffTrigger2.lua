@@ -2112,7 +2112,7 @@ local function createScanFunc(trigger)
   if use_tooltip and trigger.tooltip_operator and trigger.tooltip then
     if trigger.tooltip_operator == "==" then
       local ret2 = [[
-      if not matchData.tooltip or not matchData.tooltip == %s then
+      if not matchData.tooltip or matchData.tooltip ~= %s then
         return false
       end
       ]]
@@ -2147,7 +2147,7 @@ local function createScanFunc(trigger)
   if trigger.useNamePattern and trigger.namePattern_operator and trigger.namePattern_name then
     if trigger.namePattern_operator == "==" then
       local ret2 = [[
-      if not matchData.name == %s then
+      if matchData.name ~= %s then
         return false
       end
       ]]
