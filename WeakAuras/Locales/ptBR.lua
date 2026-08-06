@@ -1202,7 +1202,7 @@ L["Realm Name"] = "Realm Name"
 --[[Translation missing --]]
 L["Realm of Caster's Target"] = "Realm of Caster's Target"
 --[[Translation missing --]]
-L["Receiving display information"] = "Receiving display information"
+L["Receiving display information from %s"] = "Receiving display information from %s"
 L["Reflect"] = "Refletir"
 --[[Translation missing --]]
 L["Region type %s not supported"] = "Region type %s not supported"

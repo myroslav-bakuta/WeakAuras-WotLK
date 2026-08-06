@@ -1137,7 +1137,7 @@ L["Realm"] = "Reino"
 L["Realm Name"] = "Realm Name"
 --[[Translation missing --]]
 L["Realm of Caster's Target"] = "Realm of Caster's Target"
-L["Receiving display information"] = "Recibiendo información de aura de %s..."
+L["Receiving display information from %s"] = "Recibiendo información de aura de %s..."
 L["Reflect"] = "Reflejar"
 L["Region type %s not supported"] = "No soporta el tipo de región %s"
 L["Relative"] = "Relativo"

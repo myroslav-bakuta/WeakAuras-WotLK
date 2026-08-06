@@ -584,7 +584,7 @@ Comm:RegisterComm("WeakAurasProg", function(prefix, message, distribution, sende
       local green = min(255, (done / total) * 511)
       ShowTooltip({
         {2, "WeakAuras", displayName, 0.5, 0, 1, 1, 1, 1},
-        {1, L["Receiving display information"]:format(sender), 1, 0.82, 0},
+        {1, L["Receiving display information from %s"]:format(sender), 1, 0.82, 0},
         {2, " ", ("|cFF%2x%2x00"):format(red, green)..done.."|cFF00FF00/"..total}
       })
     end
