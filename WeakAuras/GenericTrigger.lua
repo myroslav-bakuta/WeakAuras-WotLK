@@ -2729,6 +2729,13 @@ do
     end
   end
 
+  -- Entry point for DBMLegacy.lua: a DBM release too old to fire the timer and announce
+  -- callbacks gets them synthesised, and they have to arrive on the same path a native
+  -- callback would take.
+  function Private.EmitDBMEvent(event, ...)
+    dbmEventCallback(event, ...)
+  end
+
   function WeakAuras.RegisterDBMCallback(event)
     if registeredDBMEvents[event] then
       return

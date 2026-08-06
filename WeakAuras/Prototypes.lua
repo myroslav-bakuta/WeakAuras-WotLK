@@ -6201,11 +6201,14 @@ Private.event_prototypes = {
 
 };
 
-if not (DBM and DBM.ReleaseRevision >= 7003) then
+-- DBM 4.x never reached these revisions but DBMLegacy.lua supplies the callbacks it is
+-- missing, so a shimmed install keeps the DBM triggers too.
+local legacyDBM = Private.IsLegacyDBM and Private.IsLegacyDBM()
+if not (DBM and (DBM.ReleaseRevision >= 7003 or legacyDBM)) then
   Private.event_prototypes["DBM Announce"] = nil
   Private.event_prototypes["DBM Timer"] = nil
 end
-if not (DBM and DBM.ReleaseRevision >= 7005) then
+if not (DBM and (DBM.ReleaseRevision >= 7005 or legacyDBM)) then
   Private.event_prototypes["DBM Stage"] = nil
 end
 Private.event_prototypes["BigWigs Message"] = nil
