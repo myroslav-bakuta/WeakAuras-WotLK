@@ -319,9 +319,9 @@ function Private.Animate(namespace, uid, type, anim, region, inverse, onFinished
 
     duration = Private.ParseNumber(anim.duration) or 0;
     progress = 0;
-    if(namespace == "display" and type == "main" and not onFinished and not anim.duration_type == "relative") then
+    if(namespace == "display" and type == "main" and not onFinished and anim.duration_type ~= "relative") then
       local data = Private.GetDataByUID(uid);
-      if(data and data.parent) then
+      if(data and data.parent and WeakAuras.regions[data.parent]) then
         local parentRegion = WeakAuras.regions[data.parent].region;
         if(parentRegion and parentRegion.controlledRegions) then
           for index, regionData in pairs(parentRegion.controlledRegions) do
