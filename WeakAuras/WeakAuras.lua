@@ -2017,14 +2017,12 @@ local function customOptionIsValid(option)
     return false
   elseif Private.author_option_classes[option.type] == "simple" then
     if not option.key
-    or not option.name
-    or not option.default == nil then
+    or not option.name then
       return false
     end
   elseif Private.author_option_classes[option.type] == "group" then
     if not option.key
     or not option.name
-    or not option.default == nil
     or not option.subOptions then
       return false
     end
