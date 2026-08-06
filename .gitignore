@@ -1,0 +1,16 @@
+# Local-only additions, not for upstream
+# NOTE: a leading slash matters here. A bare "Libs/" would also match the
+# addon's own WeakAuras/Libs/, silently hiding newly embedded libraries.
+/Libs/
+/tools/
+/docs/
+/graphify-out/
+/.claude/
+/.claude_answers/
+/.remember/
+CLAUDE.md
+WeakAuras-WotLK.code-workspace
+
+# Aura working folders
+/!output/
+/!to_check/
