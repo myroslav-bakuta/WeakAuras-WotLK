@@ -3218,11 +3218,16 @@ Private.event_prototypes = {
     type = "addons",
     events = {},
     internal_events = {
-      "DBM_SetStage"
+      -- DBM_TimerStopAll is what a kill or a wipe scans, and the stage is reset there,
+      -- so the trigger has to re-evaluate on it or it would keep showing the last phase
+      -- of the previous attempt.
+      "DBM_SetStage", "DBM_TimerStopAll"
     },
     name = L["DBM Stage"],
     init = function(trigger)
       WeakAuras.RegisterDBMCallback("DBM_SetStage");
+      WeakAuras.RegisterDBMCallback("kill");
+      WeakAuras.RegisterDBMCallback("wipe");
       return ""
     end,
     args = {
@@ -3233,10 +3238,208 @@ Private.event_prototypes = {
         type = "number",
         conditionType = "number",
         store = true,
+      },
+      {
+        -- Read from getters rather than the event arguments so the trigger is also
+        -- correct for an aura that loaded in the middle of a fight.
+        name = "total",
+        init = "WeakAuras.GetDBMStageTotal()",
+        display = L["Total Stages"],
+        type = "number",
+        conditionType = "number",
+        store = true,
+      },
+      {
+        name = "modId",
+        init = "WeakAuras.GetDBMStageMod()",
+        display = L["Mod Id"],
+        type = "string",
+        conditionType = "string",
+        store = true,
       }
     },
     automaticrequired = true,
     statesParameter = "one",
+  },
+  -- DBM fires these three itself, on every release including DBM 4.x. The arguments are
+  -- bound positionally, so the order of the init = "arg" entries below has to match the
+  -- callback payload exactly: DBM_Pull(mod, delay, synced), DBM_Kill(mod), DBM_Wipe(mod).
+  -- Every hidden arg carries test = "true" because ConstructTest builds a test for hidden
+  -- args unconditionally, and only the literal "(true)" is discarded.
+  ["DBM Pull"] = {
+    type = "addons",
+    events = {},
+    internal_events = {
+      "DBM_Pull"
+    },
+    name = L["DBM Pull"],
+    init = function(trigger)
+      WeakAuras.RegisterDBMCallback("DBM_Pull");
+      local ret = "local use_cloneId = %s;"
+      return ret:format(trigger.use_cloneId and "true" or "false");
+    end,
+    statesParameter = "all",
+    args = {
+      {
+        name = "mod",
+        init = "arg",
+        hidden = true,
+        test = "true"
+      },
+      {
+        name = "delay",
+        init = "arg",
+        display = L["Delay"],
+        type = "number",
+        conditionType = "number",
+        store = true,
+        hidden = true,
+        test = "true"
+      },
+      {
+        name = "synced",
+        init = "arg",
+        hidden = true,
+        test = "true"
+      },
+      {
+        name = "modId",
+        init = "mod and mod.id or ''",
+        display = L["Mod Id"],
+        type = "string",
+        conditionType = "string",
+        store = true
+      },
+      {
+        name = "bossName",
+        init = "mod and mod.localization and mod.localization.general and mod.localization.general.name or ''",
+        display = L["Boss"],
+        type = "string",
+        conditionType = "string",
+        store = true
+      },
+      {
+        name = "name",
+        init = "bossName",
+        hidden = true,
+        test = "true",
+        store = true
+      },
+      {
+        name = "cloneId",
+        display = L["Clone per Event"],
+        type = "toggle",
+        test = "true",
+        init = "use_cloneId and WeakAuras.GetUniqueCloneId() or ''"
+      },
+    },
+    timedrequired = true
+  },
+  ["DBM Kill"] = {
+    type = "addons",
+    events = {},
+    internal_events = {
+      "DBM_Kill"
+    },
+    name = L["DBM Kill"],
+    init = function(trigger)
+      WeakAuras.RegisterDBMCallback("DBM_Kill");
+      local ret = "local use_cloneId = %s;"
+      return ret:format(trigger.use_cloneId and "true" or "false");
+    end,
+    statesParameter = "all",
+    args = {
+      {
+        name = "mod",
+        init = "arg",
+        hidden = true,
+        test = "true"
+      },
+      {
+        name = "modId",
+        init = "mod and mod.id or ''",
+        display = L["Mod Id"],
+        type = "string",
+        conditionType = "string",
+        store = true
+      },
+      {
+        name = "bossName",
+        init = "mod and mod.localization and mod.localization.general and mod.localization.general.name or ''",
+        display = L["Boss"],
+        type = "string",
+        conditionType = "string",
+        store = true
+      },
+      {
+        name = "name",
+        init = "bossName",
+        hidden = true,
+        test = "true",
+        store = true
+      },
+      {
+        name = "cloneId",
+        display = L["Clone per Event"],
+        type = "toggle",
+        test = "true",
+        init = "use_cloneId and WeakAuras.GetUniqueCloneId() or ''"
+      },
+    },
+    timedrequired = true
+  },
+  ["DBM Wipe"] = {
+    type = "addons",
+    events = {},
+    internal_events = {
+      "DBM_Wipe"
+    },
+    name = L["DBM Wipe"],
+    init = function(trigger)
+      WeakAuras.RegisterDBMCallback("DBM_Wipe");
+      local ret = "local use_cloneId = %s;"
+      return ret:format(trigger.use_cloneId and "true" or "false");
+    end,
+    statesParameter = "all",
+    args = {
+      {
+        name = "mod",
+        init = "arg",
+        hidden = true,
+        test = "true"
+      },
+      {
+        name = "modId",
+        init = "mod and mod.id or ''",
+        display = L["Mod Id"],
+        type = "string",
+        conditionType = "string",
+        store = true
+      },
+      {
+        name = "bossName",
+        init = "mod and mod.localization and mod.localization.general and mod.localization.general.name or ''",
+        display = L["Boss"],
+        type = "string",
+        conditionType = "string",
+        store = true
+      },
+      {
+        name = "name",
+        init = "bossName",
+        hidden = true,
+        test = "true",
+        store = true
+      },
+      {
+        name = "cloneId",
+        display = L["Clone per Event"],
+        type = "toggle",
+        test = "true",
+        init = "use_cloneId and WeakAuras.GetUniqueCloneId() or ''"
+      },
+    },
+    timedrequired = true
   },
   ["DBM Announce"] = {
     type = "addons",
@@ -6210,6 +6413,12 @@ if not (DBM and (DBM.ReleaseRevision >= 7003 or legacyDBM)) then
 end
 if not (DBM and (DBM.ReleaseRevision >= 7005 or legacyDBM)) then
   Private.event_prototypes["DBM Stage"] = nil
+end
+-- Pull, kill and wipe are fired by every DBM release, so these only need DBM to be there.
+if not DBM then
+  Private.event_prototypes["DBM Pull"] = nil
+  Private.event_prototypes["DBM Kill"] = nil
+  Private.event_prototypes["DBM Wipe"] = nil
 end
 Private.event_prototypes["BigWigs Message"] = nil
 Private.event_prototypes["BigWigs Timer"] = nil

@@ -60,19 +60,56 @@ do
   local icons = {}   -- bar id -> icon path
   local barPrototypeHooked = false
 
-  -- DBM names auto-localised timers "Timer<spellId><modId><n>", so the spell id can be
-  -- read back off the bar id without reaching into DBM's internal timer objects.
+  -- DBM names auto-localised timers "Timer<spellId><modId><n>", so a spell id can be read
+  -- straight off the bar id. Timers built with the older NewTimer take their id from a
+  -- localisation key instead and carry no spell id there, hence the object lookup below.
   local function spellIdFromBarId(id)
     return type(id) == "string" and id:match("^Timer(%d+)") or nil
+  end
+
+  -- A bar id is "<timerObj.id>\t<arg>\t<arg>...", so the part before the first tab
+  -- identifies the timer object that started it. Boss mods load by zone, so the index is
+  -- built lazily and rebuilt once when a lookup misses.
+  local timerIndex, timerIndexStale = nil, true
+
+  local function buildTimerIndex()
+    timerIndex, timerIndexStale = {}, false
+    for _, mod in ipairs(DBM.Mods or {}) do
+      for _, obj in ipairs(mod.timers or {}) do
+        if obj.id then
+          -- NewTimer takes its id from a localisation key, which two mods can share.
+          -- An ambiguous id is marked false and reports no metadata rather than a guess.
+          if timerIndex[obj.id] == nil then
+            timerIndex[obj.id] = obj
+          elseif timerIndex[obj.id] ~= obj then
+            timerIndex[obj.id] = false
+          end
+        end
+      end
+    end
+  end
+
+  local function timerObjectFor(barId)
+    if type(barId) ~= "string" then return nil end
+    local key = barId:match("^([^\t]+)") or barId
+    if not timerIndex then buildTimerIndex() end
+    local obj = timerIndex[key]
+    if obj == nil and timerIndexStale then
+      buildTimerIndex()
+      obj = timerIndex[key]
+    end
+    return obj or nil -- false means ambiguous, and reads as no metadata
   end
 
   local function emitStart(bar)
     if not bar or bar.dead then return end
     tracked[bar.id] = true
-    -- dbmType stays nil on purpose: DBM 4.x has no per-timer-type bar colours, and nil
-    -- routes WeakAuras to StartColorR/G/B, which this DBT release does have.
+    local obj = timerObjectFor(bar.id)
+    -- dbmType (last) stays nil on purpose: DBM 4.x has no per-timer-type bar colours, and
+    -- nil routes WeakAuras to StartColorR/G/B, which this DBT release does have.
     emit("DBM_TimerStart", bar.id, (bar.text ~= "" and bar.text) or bar.id, bar.timer,
-      icons[bar.id], nil, spellIdFromBarId(bar.id), nil)
+      icons[bar.id], obj and obj.type or nil,
+      (obj and obj.spellId) or spellIdFromBarId(bar.id), nil)
   end
 
   -- The bar prototype is a local inside DBT; reach it through a live bar.
@@ -115,6 +152,14 @@ do
     icons[id] = icon
     hookBarPrototype(bar)
     emitStart(bar)
+  end)
+
+  -- A boss mod loading brings new timer objects with it. Only a flag is set here; the
+  -- index itself is rebuilt at most once, and only if a lookup actually misses.
+  local watcher = CreateFrame("Frame")
+  watcher:RegisterEvent("ADDON_LOADED")
+  watcher:SetScript("OnEvent", function()
+    timerIndexStale = true
   end)
 
   hooksecurefunc(bars, "UpdateBar", function(self, id, elapsed, totalTime)
