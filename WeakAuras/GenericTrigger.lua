@@ -2546,6 +2546,8 @@ do
   local nextExpire -- time of next expiring timer
   local recheckTimer -- handle of timer
   local currentStage = 0
+  local currentStageTotal = 0
+  local currentStageMod = ""
 
   local function dbmRecheckTimers()
     local now = GetTime()
@@ -2619,6 +2621,9 @@ do
     elseif event == "kill" or event == "wipe" then -- Wipe or kill, removing all timers
       local id = ...
       bars = {}
+      -- The encounter is over, so the phase has to go with it. Leaving it behind would
+      -- show the last phase of the previous attempt for the whole of the next pull.
+      currentStage, currentStageTotal, currentStageMod = 0, 0, ""
       WeakAuras.ScanEvents("DBM_TimerStopAll", id)
     elseif event == "DBM_TimerUpdate" then
       local id, elapsed, duration = ...
@@ -2636,8 +2641,10 @@ do
       end
       WeakAuras.ScanEvents("DBM_TimerUpdate", id)
     elseif event == "DBM_SetStage" then
-      local mod, modId, stage = ...
+      local mod, modId, stage, totality = ...
       currentStage = stage
+      currentStageTotal = totality or 0
+      currentStageMod = modId or ""
       WeakAuras.ScanEvents("DBM_SetStage", ...)
     else -- DBM_Announce
       WeakAuras.ScanEvents(event, ...)
@@ -2684,6 +2691,17 @@ do
     return currentStage
   end
 
+  -- DBM's SetStage also reports how many phases the encounter has and which boss mod
+  -- announced it. Read through getters, like the stage itself, so a trigger is correct
+  -- for an aura that loaded in the middle of a fight and never saw the event.
+  function WeakAuras.GetDBMStageTotal()
+    return currentStageTotal
+  end
+
+  function WeakAuras.GetDBMStageMod()
+    return currentStageMod
+  end
+
   function WeakAuras.GetDBMTimerById(id)
     return bars[id]
   end
@@ -2727,6 +2745,13 @@ do
     if extendTimer ~= 0 then
       state.autoHide = true
     end
+  end
+
+  -- Entry point for DBMLegacy.lua: a DBM release too old to fire the timer and announce
+  -- callbacks gets them synthesised, and they have to arrive on the same path a native
+  -- callback would take.
+  function Private.EmitDBMEvent(event, ...)
+    dbmEventCallback(event, ...)
   end
 
   function WeakAuras.RegisterDBMCallback(event)
