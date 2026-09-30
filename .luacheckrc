@@ -17,6 +17,7 @@ exclude_files = {
 	"./.luarocks",
 	"WeakAuras/Libs/",
 	"WeakAuras/Locales/",
+	"Libs/",
 	".luacheckrc"
 }
 
