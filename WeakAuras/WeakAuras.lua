@@ -802,28 +802,31 @@ function Private.CountWagoUpdates()
   return updatedSlugsCount
 end
 
+local function tooltip_key_row(tooltip, key, action)
+  tooltip:AddDoubleLine(L[key], L[action], 0.91, 0.75, 0.48, 0.90, 0.88, 0.91);
+end
+
 local function tooltip_draw()
   local tooltip = GameTooltip;
   tooltip:ClearLines();
-  tooltip:AddDoubleLine("WeakAuras", versionString);
+  tooltip:AddDoubleLine("|TInterface\\AddOns\\WeakAuras\\Media\\Textures\\icon.blp:16:16|t WeakAuras", "v" .. versionString,
+    1, 1, 1, 0.73, 0.70, 0.77);
+  if paused then
+    tooltip:AddLine(L["Paused"], 1, 0.3, 0.3);
+  end
   if Private.CompanionData.slugs then
     local count = Private.CountWagoUpdates()
     if count > 0 then
-      tooltip:AddLine(" ");
-      tooltip:AddLine((L["There are %i updates to your auras ready to be installed!"]):format(count));
+      tooltip:AddLine((L["There are %i updates to your auras ready to be installed!"]):format(count), 0.73, 0.70, 0.77, true);
     end
   end
   tooltip:AddLine(" ");
-  tooltip:AddLine(L["|cffeda55fLeft-Click|r to toggle showing the main window."], 0.2, 1, 0.2);
+  tooltip_key_row(tooltip, "Left-Click", "Main window");
   if not WeakAuras.IsOptionsOpen() then
-    if paused then
-      tooltip:AddLine("|cFFFF0000"..L["Paused"].." - "..L["Shift-Click to resume addon execution."], 0.2, 1, 0.2);
-    else
-      tooltip:AddLine(L["|cffeda55fShift-Click|r to pause addon execution."], 0.2, 1, 0.2);
-    end
+    tooltip_key_row(tooltip, "Shift-Click", paused and "Resume addon execution" or "Pause addon execution");
   end
-  tooltip:AddLine(L["|cffeda55fRight-Click|r to toggle performance profiling window."], 0.2, 1, 0.2);
-  tooltip:AddLine(L["|cffeda55fMiddle-Click|r to toggle the minimap icon on or off."], 0.2, 1, 0.2);
+  tooltip_key_row(tooltip, "Right-Click", "Profiling window");
+  tooltip_key_row(tooltip, "Middle-Click", "Hide minimap icon");
   tooltip:Show();
 end
 
